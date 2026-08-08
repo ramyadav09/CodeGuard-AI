@@ -5,6 +5,17 @@ from app.core.config import settings
 
 # Adjust database URL for async driver compatibility
 db_url = settings.DATABASE_URL
+is_neon = "neon.tech" in db_url
+needs_ssl = "sslmode=require" in db_url or is_neon
+
+# asyncpg does NOT accept sslmode in the URL — strip it out
+if "?" in db_url:
+    base_url, query = db_url.split("?", 1)
+    # Remove sslmode param, keep any other params
+    params = [p for p in query.split("&") if not p.startswith("sslmode")]
+    db_url = base_url + ("?" + "&".join(params) if params else "")
+
+# Normalize URL scheme for async drivers
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
 elif db_url.startswith("postgresql://"):
@@ -12,12 +23,13 @@ elif db_url.startswith("postgresql://"):
 elif db_url.startswith("sqlite://") and not db_url.startswith("sqlite+aiosqlite://"):
     db_url = db_url.replace("sqlite://", "sqlite+aiosqlite://", 1)
 
+# Build connect_args based on driver
 connect_args = {}
 if "sqlite" in db_url:
     connect_args["check_same_thread"] = False
-elif "postgresql" in db_url:
-    # Handle SSL mode for Neon PostgreSQL if required
-    connect_args["ssl"] = "require" if "sslmode=require" in db_url or "neon.tech" in db_url else False
+elif "postgresql" in db_url and needs_ssl:
+    # asyncpg accepts ssl as a string 'require' in connect_args
+    connect_args["ssl"] = "require"
 
 engine = create_async_engine(
     db_url,

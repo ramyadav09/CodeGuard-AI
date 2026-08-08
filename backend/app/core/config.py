@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     AI_API_KEY: Optional[str] = os.getenv("AI_API_KEY", None)
     
     # Database Configuration
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./codeguard.db")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./codeguard.db")  # Override with Neon PostgreSQL URL in .env
     
     # Server Settings
     PORT: int = int(os.getenv("PORT", "8000"))
