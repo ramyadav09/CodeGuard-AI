@@ -8,11 +8,11 @@ db_url = settings.DATABASE_URL
 is_neon = "neon.tech" in db_url
 needs_ssl = "sslmode=require" in db_url or is_neon
 
-# asyncpg does NOT accept sslmode in the URL — strip it out
+# asyncpg does NOT accept sslmode / channel_binding in the URL — strip them out
 if "?" in db_url:
     base_url, query = db_url.split("?", 1)
     # Remove sslmode param, keep any other params
-    params = [p for p in query.split("&") if not p.startswith("sslmode")]
+    params = [p for p in query.split("&") if not p.startswith("sslmode") and not p.startswith("channel_binding")]
     db_url = base_url + ("?" + "&".join(params) if params else "")
 
 # Normalize URL scheme for async drivers
