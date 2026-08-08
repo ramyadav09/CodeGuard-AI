@@ -169,6 +169,6 @@ class AIProvider(ABC):
 - **Local Execution**: Backend runs on `http://localhost:8000`, Frontend on `http://localhost:5173`.
 - **CI/CD Pipeline**: GitHub Actions (`.github/workflows/ci.yml`):
   1. Installs Python & Node dependencies.
-  2. Runs Python `flake8` / `ruff` linting and `pytest` test suite with `MockAIProvider`.
-  3. Runs Frontend `eslint`, `vitest` unit tests, and Vite production build.
-  4. Runs Playwright E2E integration tests against the built app.
+  2. Runs Python `ruff` linting/formatting checks, and `pytest` test suite with coverage enforcement (minimum 85%).
+  3. Runs Frontend `oxlint` linting, `vitest` unit tests, and Vite production build.
+  4. Runs Playwright E2E integration tests against the live FastAPI background server using `MockAIProvider`.

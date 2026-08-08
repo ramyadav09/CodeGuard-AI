@@ -1,24 +1,17 @@
-import pytest
 import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.main import app
 from app.core.database import Base, get_db
-from app.core.config import settings
+from app.main import app
 
 # Test DB in-memory SQLite
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
-test_engine = create_async_engine(
-    TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False}
-)
+test_engine = create_async_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
 
 TestingSessionLocal = async_sessionmaker(
-    bind=test_engine,
-    class_=AsyncSession,
-    expire_on_commit=False
+    bind=test_engine, class_=AsyncSession, expire_on_commit=False
 )
 
 

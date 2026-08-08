@@ -132,3 +132,53 @@ index 7898192..2e65efe 100644
         # 4. Get invalid report returns 404
         invalid_response = await client.get("/api/v1/review/invalid-uuid-or-id")
         assert invalid_response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_review_endpoint_returns_400_on_value_error(client):
+    """POST /review with bad payload should return 400"""
+    with patch(
+        "app.skills.pr_review_skill.PRReviewSkill.execute",
+        new_callable=AsyncMock,
+        side_effect=ValueError("Must provide either repo_url or owner, repo, and pr_number."),
+    ):
+        response = await client.post(
+            "/api/v1/review",
+            json={"ai_provider": "mock"},
+        )
+    assert response.status_code == 400
+    assert "Must provide either" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_review_endpoint_returns_500_on_unhandled_exception(client):
+    """POST /review when skill raises unexpected error → 500"""
+    with patch(
+        "app.skills.pr_review_skill.PRReviewSkill.execute",
+        new_callable=AsyncMock,
+        side_effect=RuntimeError("unexpected failure"),
+    ):
+        response = await client.post(
+            "/api/v1/review",
+            json={"repo_url": "https://github.com/owner/repo/pull/1", "ai_provider": "mock"},
+        )
+    assert response.status_code == 500
+    assert "unexpected failure" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_review_endpoint_returns_404_on_github_service_error(client):
+    """POST /review when GitHub service raises 404 → 404"""
+    from app.services.github_service import GitHubServiceError
+
+    with patch(
+        "app.skills.pr_review_skill.PRReviewSkill.execute",
+        new_callable=AsyncMock,
+        side_effect=GitHubServiceError("PR not found", status_code=404),
+    ):
+        response = await client.post(
+            "/api/v1/review",
+            json={"repo_url": "https://github.com/owner/repo/pull/999", "ai_provider": "mock"},
+        )
+    assert response.status_code == 404
+    assert "PR not found" in response.json()["detail"]
