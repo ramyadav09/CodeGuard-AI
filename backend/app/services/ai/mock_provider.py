@@ -84,8 +84,7 @@ class MockAIProvider(AIProvider):
                         "None and crashes with AttributeError at runtime."
                     ),
                     "suggested_fix": (
-                        "Add an explicit `if match:` check before accessing regex group "
-                        "parameters."
+                        "Add an explicit `if match:` check before accessing regex group parameters."
                     ),
                     "confidence": 0.89,
                 }

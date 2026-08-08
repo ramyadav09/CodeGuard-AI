@@ -56,9 +56,7 @@ class BugDetectionAgent(BaseAgent):
         )
 
         try:
-            result = await self.ai_provider.analyze_diff(
-                prompt, system_instruction, BugAgentOutput
-            )
+            result = await self.ai_provider.analyze_diff(prompt, system_instruction, BugAgentOutput)
             raw_findings = result.get("findings", [])
             valid_findings = []
             for item in raw_findings:
