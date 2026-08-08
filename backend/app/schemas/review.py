@@ -1,6 +1,6 @@
 from enum import Enum
-from typing import List, Optional, Dict
-from pydantic import BaseModel, Field, HttpUrl, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class FindingSeverity(str, Enum):
@@ -21,17 +21,19 @@ class FindingCategory(str, Enum):
 
 
 class FindingSchema(BaseModel):
-    id: Optional[str] = None
+    id: str | None = None
     severity: FindingSeverity
     category: FindingCategory
     file_path: str = Field(..., description="File path relative to repository root")
-    line_start: Optional[int] = Field(None, description="Starting line number of finding")
-    line_end: Optional[int] = Field(None, description="Ending line number of finding")
+    line_start: int | None = Field(None, description="Starting line number of finding")
+    line_end: int | None = Field(None, description="Ending line number of finding")
     title: str = Field(..., description="Short summary title of finding")
     description: str = Field(..., description="Detailed description of problem")
     why_it_matters: str = Field(..., description="Impact explanation for developer")
     suggested_fix: str = Field(..., description="Actionable code fix or guidance snippet")
-    confidence: float = Field(..., ge=0.0, le=1.0, description="AI confidence score between 0.0 and 1.0")
+    confidence: float = Field(
+        ..., ge=0.0, le=1.0, description="AI confidence score between 0.0 and 1.0"
+    )
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -60,21 +62,25 @@ class PRMetadata(BaseModel):
 
 
 class PRReviewRequest(BaseModel):
-    repo_url: Optional[str] = Field(None, description="Full GitHub PR URL e.g. https://github.com/owner/repo/pull/1")
-    owner: Optional[str] = None
-    repo: Optional[str] = None
-    pr_number: Optional[int] = None
-    ai_provider: Optional[str] = Field(None, description="Override AI provider (gemini, nvidia, mock)")
+    repo_url: str | None = Field(
+        None, description="Full GitHub PR URL e.g. https://github.com/owner/repo/pull/1"
+    )
+    owner: str | None = None
+    repo: str | None = None
+    pr_number: int | None = None
+    ai_provider: str | None = Field(None, description="Override AI provider (gemini, nvidia, mock)")
 
 
 class PRReviewResponse(BaseModel):
     id: str
     pr_metadata: PRMetadata
-    overall_score: int = Field(..., ge=0, le=100, description="Overall PR Health Score from 0 to 100")
+    overall_score: int = Field(
+        ..., ge=0, le=100, description="Overall PR Health Score from 0 to 100"
+    )
     summary: str
     findings_count: int
     severity_breakdown: SeverityBreakdown
-    findings: List[FindingSchema]
+    findings: list[FindingSchema]
     created_at: str
 
     model_config = ConfigDict(from_attributes=True)

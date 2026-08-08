@@ -1,6 +1,8 @@
-from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from collections.abc import AsyncGenerator
+
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+
 from app.core.config import settings
 
 # Adjust database URL for async driver compatibility
@@ -12,7 +14,11 @@ needs_ssl = "sslmode=require" in db_url or is_neon
 if "?" in db_url:
     base_url, query = db_url.split("?", 1)
     # Remove sslmode param, keep any other params
-    params = [p for p in query.split("&") if not p.startswith("sslmode") and not p.startswith("channel_binding")]
+    params = [
+        p
+        for p in query.split("&")
+        if not p.startswith("sslmode") and not p.startswith("channel_binding")
+    ]
     db_url = base_url + ("?" + "&".join(params) if params else "")
 
 # Normalize URL scheme for async drivers
@@ -31,19 +37,10 @@ elif "postgresql" in db_url and needs_ssl:
     # asyncpg accepts ssl as a string 'require' in connect_args
     connect_args["ssl"] = "require"
 
-engine = create_async_engine(
-    db_url,
-    echo=False,
-    future=True,
-    connect_args=connect_args
-)
+engine = create_async_engine(db_url, echo=False, future=True, connect_args=connect_args)
 
 AsyncSessionLocal = async_sessionmaker(
-    bind=engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-    autocommit=False,
-    autoflush=False
+    bind=engine, class_=AsyncSession, expire_on_commit=False, autocommit=False, autoflush=False
 )
 
 

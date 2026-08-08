@@ -35,65 +35,91 @@ Detailed documentation is available in the `docs/` folder:
 ## 🚀 Quick Start Guide
 
 ### Prerequisites
+
 - Python 3.11+
 - Node.js 18+ and npm
 - Git
 
-### 1. Repository Setup & Environment
+### 1. Repository Setup
+
 ```bash
 git clone https://github.com/your-org/codeguard-ai.git
 cd codeguard-ai
+```
 
-# Copy environment variables
+### 2. Backend Setup
+
+```bash
+cd backend
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# Windows:
+venv\Scripts\activate
+# Linux/macOS:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your GitHub token, AI API key, and database URL
+```
+
+Start the backend server:
+```bash
+uvicorn app.main:app --reload --port 8000
+```
+
+Backend API: `http://localhost:8000` | Swagger Docs: `http://localhost:8000/docs`
+
+> **Backend Environment Variables**: See [backend/.env.example](backend/.env.example) and [backend/README.md](backend/README.md)
+
+### 3. Frontend Setup
+
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Configure environment (optional - defaults to http://localhost:8000)
 cp .env.example .env
 ```
 
-Edit `.env` to add your keys (optional for test mode):
-```env
-GITHUB_TOKEN=your_github_token
-AI_PROVIDER=gemini # or 'mock' for local offline testing
-AI_API_KEY=your_gemini_api_key
-```
-
-### 2. Backend Installation & Execution
+Start the development server:
 ```bash
-cd backend
-python -m venv venv
-# On Windows:
-venv\Scripts\activate
-# On Linux/macOS:
-source venv/bin/activate
-
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-```
-Backend API will be available at `http://localhost:8000`. API Swagger docs at `http://localhost:8000/docs`.
-
-### 3. Frontend Installation & Execution
-```bash
-cd frontend
-npm install
 npm run dev
 ```
-Web application dashboard will be live at `http://localhost:5173`.
+
+Frontend Dashboard: `http://localhost:5173`
+
+> **Frontend Environment Variables**: See [frontend/.env.example](frontend/.env.example) and [frontend/README.md](frontend/README.md)
 
 ---
 
 ## 🧪 Running Tests
 
 ### Backend Unit & Integration Tests (Pytest)
+
 ```bash
 cd backend
-pytest -v
+pytest -v --cov=app --cov-report=term-missing
 ```
 
 ### Frontend Build & Unit Verification
+
 ```bash
 cd frontend
 npm run build
+npm run lint
 ```
 
 ### Playwright End-to-End Tests
+
 ```bash
 cd frontend
 npx playwright test
@@ -110,6 +136,44 @@ npx playwright test
 5. Review the **PR Health Score**, **Severity Breakdown Pills**, and **Interactive Findings**.
 6. Filter findings by `SECURITY` or `BUG` categories.
 7. Click on a finding to view file line location, rationale, and copy the suggested code fix.
+
+---
+
+## 📁 Project Structure
+
+```
+codeguard-ai/
+├── backend/                 # FastAPI backend service
+│   ├── app/                # Application code
+│   ├── tests/              # Pytest test suite
+│   ├── .env.example        # Backend environment template
+│   ├── README.md           # Backend documentation
+│   └── requirements.txt    # Python dependencies
+├── frontend/               # React + TypeScript + Vite frontend
+│   ├── src/                # Source code
+│   ├── e2e/                # Playwright E2E tests
+│   ├── .env.example        # Frontend environment template
+│   ├── README.md           # Frontend documentation
+│   └── package.json        # Node dependencies
+├── docs/                   # Architecture & PRD documentation
+├── .env.example            # Root environment template (references sub-projects)
+├── AGENTS.md               # Agent constitution & rules
+├── AGENTS_AND_SKILLS.md    # Custom agents & skills specification
+└── README.md               # This file
+```
+
+---
+
+## 🔐 Environment Configuration
+
+Each sub-project has its own `.env.example` file:
+
+| Project | Template | Required Variables |
+|---------|----------|-------------------|
+| **Backend** | `backend/.env.example` | `GITHUB_TOKEN`, `AI_API_KEY`, `DATABASE_URL` |
+| **Frontend** | `frontend/.env.example` | `VITE_API_BASE_URL` (optional) |
+
+**Never commit `.env` files** — they are in `.gitignore`. Copy `.env.example` to `.env` in each project directory and fill in your values.
 
 ---
 

@@ -1,20 +1,20 @@
 import asyncio
 import logging
-from datetime import datetime, timezone
-from typing import Optional
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from datetime import UTC, datetime
 
-from app.schemas.review import PRReviewRequest, PRReviewResponse, PRMetadata, FindingSchema
-from app.services.github_service import GitHubService
-from app.services.diff_parser import DiffParser
-from app.services.ai.factory import get_ai_provider
-from app.agents.bug_agent import BugDetectionAgent
-from app.agents.security_agent import SecurityReviewAgent
-from app.agents.code_quality_agent import CodeQualityAgent
-from app.agents.test_agent import TestAnalysisAgent
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.agents.aggregator import ReviewAggregator
-from app.models.review import RepositoryModel, PullRequestModel, ReviewReportModel, FindingModel
+from app.agents.bug_agent import BugDetectionAgent
+from app.agents.code_quality_agent import CodeQualityAgent
+from app.agents.security_agent import SecurityReviewAgent
+from app.agents.test_agent import TestAnalysisAgent
+from app.models.review import FindingModel, PullRequestModel, RepositoryModel, ReviewReportModel
+from app.schemas.review import PRMetadata, PRReviewRequest, PRReviewResponse
+from app.services.ai.factory import get_ai_provider
+from app.services.diff_parser import DiffParser
+from app.services.github_service import GitHubService
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class PRReviewSkill:
     and returning structured developer reports.
     """
 
-    def __init__(self, db: Optional[AsyncSession] = None):
+    def __init__(self, db: AsyncSession | None = None):
         self.db = db
 
     async def execute(self, request: PRReviewRequest) -> PRReviewResponse:
@@ -61,7 +61,9 @@ class PRReviewSkill:
         qual_task = quality_agent.analyze(pr_metadata, parsed_diff)
         test_task = test_agent.analyze(pr_metadata, parsed_diff)
 
-        results = await asyncio.gather(bug_task, sec_task, qual_task, test_task, return_exceptions=True)
+        results = await asyncio.gather(
+            bug_task, sec_task, qual_task, test_task, return_exceptions=True
+        )
 
         all_findings = []
         for res in results:
@@ -69,23 +71,25 @@ class PRReviewSkill:
                 all_findings.extend(res)
 
         # Step 7: Aggregate & Deduplicate Findings
-        overall_score, severity_breakdown, final_findings, summary = ReviewAggregator.aggregate(all_findings)
+        overall_score, severity_breakdown, final_findings, summary = ReviewAggregator.aggregate(
+            all_findings
+        )
 
-        created_at_iso = datetime.now(timezone.utc).isoformat()
+        created_at_iso = datetime.now(UTC).isoformat()
 
         # Step 8: Database Persistence (if DB session provided)
         report_id = "temp-report-id"
         if self.db:
             try:
                 # Check or create repo
-                stmt = select(RepositoryModel).where(RepositoryModel.owner == owner, RepositoryModel.name == repo)
+                stmt = select(RepositoryModel).where(
+                    RepositoryModel.owner == owner, RepositoryModel.name == repo
+                )
                 result = await self.db.execute(stmt)
                 repo_obj = result.scalar_one_or_none()
                 if not repo_obj:
                     repo_obj = RepositoryModel(
-                        owner=owner,
-                        name=repo,
-                        url=f"https://github.com/{owner}/{repo}"
+                        owner=owner, name=repo, url=f"https://github.com/{owner}/{repo}"
                     )
                     self.db.add(repo_obj)
                     await self.db.flush()
@@ -93,7 +97,7 @@ class PRReviewSkill:
                 # Check or create PR
                 stmt_pr = select(PullRequestModel).where(
                     PullRequestModel.repository_id == repo_obj.id,
-                    PullRequestModel.pr_number == pr_number
+                    PullRequestModel.pr_number == pr_number,
                 )
                 result_pr = await self.db.execute(stmt_pr)
                 pr_obj = result_pr.scalar_one_or_none()
@@ -109,16 +113,14 @@ class PRReviewSkill:
                         head_branch=pr_metadata.head_branch,
                         changed_files_count=pr_metadata.changed_files_count,
                         additions=pr_metadata.additions,
-                        deletions=pr_metadata.deletions
+                        deletions=pr_metadata.deletions,
                     )
                     self.db.add(pr_obj)
                     await self.db.flush()
 
                 # Create Review Report
                 report_obj = ReviewReportModel(
-                    pull_request_id=pr_obj.id,
-                    overall_score=overall_score,
-                    summary=summary
+                    pull_request_id=pr_obj.id, overall_score=overall_score, summary=summary
                 )
                 self.db.add(report_obj)
                 await self.db.flush()
@@ -137,13 +139,13 @@ class PRReviewSkill:
                         description=f.description,
                         why_it_matters=f.why_it_matters,
                         suggested_fix=f.suggested_fix,
-                        confidence=f.confidence
+                        confidence=f.confidence,
                     )
                     self.db.add(finding_obj)
 
                 await self.db.commit()
             except Exception as db_exc:
-                logger.error(f"Failed to persist review to DB: {str(db_exc)}")
+                logger.error(f"Failed to persist review to DB: {db_exc!s}")
                 await self.db.rollback()
 
         # Step 9 & 10: Format PRReviewResponse
@@ -155,6 +157,6 @@ class PRReviewSkill:
             findings_count=len(final_findings),
             severity_breakdown=severity_breakdown,
             findings=final_findings,
-            created_at=created_at_iso
+            created_at=created_at_iso,
         )
         return response

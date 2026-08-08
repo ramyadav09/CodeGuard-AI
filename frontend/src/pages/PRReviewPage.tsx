@@ -33,7 +33,7 @@ export const PRReviewPage: React.FC<Props> = ({ review, onBack }) => {
       <div className="flex items-center space-x-2 mb-2">
         <button
           onClick={onBack}
-          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-800 text-xs text-gray-300 font-medium transition-colors"
+          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-card)] hover:bg-[var(--hover-bg)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] font-medium transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Dashboard</span>
@@ -59,10 +59,10 @@ export const PRReviewPage: React.FC<Props> = ({ review, onBack }) => {
 
       <div className="space-y-4">
         {filteredFindings.length === 0 ? (
-          <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-12 text-center">
-            <ShieldCheck className="w-10 h-10 text-emerald-400 mx-auto mb-2" />
-            <h3 className="text-base font-semibold text-gray-300">No Findings Match Current Filters</h3>
-            <p className="text-xs text-gray-500 mt-1">Try resetting severity or category filters to view all findings.</p>
+          <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-12 text-center">
+            <ShieldCheck className="w-10 h-10 text-[var(--accent-success-light)] mx-auto mb-2" />
+            <h3 className="text-base font-semibold text-[var(--text-secondary)]">No Findings Match Current Filters</h3>
+            <p className="text-xs text-[var(--text-muted)] mt-1">Try resetting severity or category filters to view all findings.</p>
           </div>
         ) : (
           filteredFindings.map((finding, idx) => (

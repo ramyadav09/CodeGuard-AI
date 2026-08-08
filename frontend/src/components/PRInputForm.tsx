@@ -35,16 +35,16 @@ export const PRInputForm: React.FC<Props> = ({ onAnalyze, isLoading }) => {
   };
 
   return (
-    <div className="bg-gray-900/90 border border-gray-800 rounded-xl p-6 shadow-2xl backdrop-blur-md">
+    <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-6 shadow-2xl backdrop-blur-md">
       <div className="flex items-center space-x-2 mb-4">
-        <Sparkles className="w-5 h-5 text-indigo-400" />
-        <h2 className="text-lg font-semibold text-white tracking-tight">Analyze Pull Request</h2>
+        <Sparkles className="w-5 h-5 text-[var(--accent-primary-light)]" />
+        <h2 className="text-lg font-semibold text-[var(--text-primary)] tracking-tight">Analyze Pull Request</h2>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex flex-col md:flex-row gap-3">
           <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-muted)]">
               <Search className="w-4 h-4" />
             </div>
             <input
@@ -52,7 +52,7 @@ export const PRInputForm: React.FC<Props> = ({ onAnalyze, isLoading }) => {
               value={prUrl}
               onChange={(e) => setPrUrl(e.target.value)}
               placeholder="Paste GitHub PR URL e.g. https://github.com/owner/repo/pull/123"
-              className="w-full pl-10 pr-4 py-3 bg-gray-950 border border-gray-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg text-sm text-gray-100 placeholder-gray-500 transition-colors"
+              className="w-full pl-10 pr-4 py-3 bg-[var(--bg-input)] border border-[var(--border-input)] focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-primary)] rounded-lg text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] transition-colors"
               disabled={isLoading}
             />
           </div>
@@ -60,7 +60,7 @@ export const PRInputForm: React.FC<Props> = ({ onAnalyze, isLoading }) => {
           <select
             value={aiProvider}
             onChange={(e) => setAiProvider(e.target.value)}
-            className="bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-lg px-3 py-3 text-sm text-gray-200"
+            className="bg-[var(--bg-input)] border border-[var(--border-input)] focus:border-[var(--accent-primary)] rounded-lg px-3 py-3 text-sm text-[var(--text-primary)]"
             disabled={isLoading}
           >
             <option value="gemini">Google Gemini AI</option>
@@ -71,7 +71,7 @@ export const PRInputForm: React.FC<Props> = ({ onAnalyze, isLoading }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className="flex items-center justify-center space-x-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 font-medium text-sm text-white rounded-lg transition-colors shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center space-x-2 px-6 py-3 bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] active:bg-[var(--accent-primary)] font-medium text-sm text-white rounded-lg transition-colors shadow-lg shadow-[var(--accent-primary)]/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
@@ -85,21 +85,21 @@ export const PRInputForm: React.FC<Props> = ({ onAnalyze, isLoading }) => {
         </div>
 
         {error && (
-          <div className="flex items-center space-x-2 text-rose-400 text-xs mt-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <div className="flex items-center space-x-2 text-[var(--accent-danger-light)] text-xs mt-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 text-[var(--accent-danger)]" />
             <span>{error}</span>
           </div>
         )}
 
         <div className="pt-2 flex flex-wrap items-center gap-2">
-          <span className="text-xs text-gray-500 font-medium">Quick Load Sample PRs:</span>
+          <span className="text-xs text-[var(--text-muted)] font-medium">Quick Load Sample PRs:</span>
           {samplePRs.map((sample, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => handleSelectSample(sample.url)}
               disabled={isLoading}
-              className="px-2.5 py-1 bg-gray-800/60 hover:bg-gray-800 text-gray-300 rounded text-xs border border-gray-700/50 transition-colors"
+              className="px-2.5 py-1 bg-[var(--bg-input)] hover:bg-[var(--hover-bg)] text-[var(--text-secondary)] rounded text-xs border border-[var(--border-input)]/50 transition-colors"
             >
               {sample.label}
             </button>

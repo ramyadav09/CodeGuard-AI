@@ -1,5 +1,6 @@
 import re
-from typing import List, Dict, Any, Optional
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -10,22 +11,24 @@ class DiffChunk(BaseModel):
     new_lines: int
     header: str
     content: str
-    added_lines: List[Dict[str, Any]] = Field(default_factory=list) # [{"line_no": 42, "code": "def foo():"}]
+    added_lines: list[dict[str, Any]] = Field(
+        default_factory=list
+    )  # [{"line_no": 42, "code": "def foo():"}]
 
 
 class FileDiff(BaseModel):
     file_path: str
-    old_path: Optional[str] = None
-    new_path: Optional[str] = None
-    status: str = "modified" # added, modified, deleted, renamed
-    chunks: List[DiffChunk] = Field(default_factory=list)
+    old_path: str | None = None
+    new_path: str | None = None
+    status: str = "modified"  # added, modified, deleted, renamed
+    chunks: list[DiffChunk] = Field(default_factory=list)
     raw_patch: str = ""
     additions_count: int = 0
     deletions_count: int = 0
 
 
 class ParsedDiff(BaseModel):
-    files: List[FileDiff] = Field(default_factory=list)
+    files: list[FileDiff] = Field(default_factory=list)
     total_files: int = 0
     total_additions: int = 0
     total_deletions: int = 0
@@ -37,7 +40,7 @@ class DiffParser:
         if not raw_diff or not raw_diff.strip():
             return ParsedDiff()
 
-        files: List[FileDiff] = []
+        files: list[FileDiff] = []
         raw_file_diffs = raw_diff.split("diff --git ")
 
         for raw_file in raw_file_diffs:
@@ -45,8 +48,8 @@ class DiffParser:
                 continue
 
             lines = raw_file.split("\n")
-            header_line = lines[0] # e.g. "a/src/main.py b/src/main.py"
-            
+            header_line = lines[0]  # e.g. "a/src/main.py b/src/main.py"
+
             # Extract file path
             path_match = re.search(r"b/(.+)$", header_line)
             file_path = path_match.group(1) if path_match else "unknown"
@@ -66,9 +69,9 @@ class DiffParser:
                     new_path = line[6:]
 
             # Parse chunks
-            chunks: List[DiffChunk] = []
-            current_chunk: Optional[DiffChunk] = None
-            chunk_lines: List[str] = []
+            chunks: list[DiffChunk] = []
+            current_chunk: DiffChunk | None = None
+            chunk_lines: list[str] = []
             additions = 0
             deletions = 0
             current_new_line = 0
@@ -95,17 +98,16 @@ class DiffParser:
                             new_start=new_start,
                             new_lines=new_lines,
                             header=header,
-                            content=""
+                            content="",
                         )
                         current_new_line = new_start
                 elif current_chunk:
                     chunk_lines.append(line)
                     if line.startswith("+") and not line.startswith("+++"):
                         additions += 1
-                        current_chunk.added_lines.append({
-                            "line_no": current_new_line,
-                            "code": line[1:]
-                        })
+                        current_chunk.added_lines.append(
+                            {"line_no": current_new_line, "code": line[1:]}
+                        )
                         current_new_line += 1
                     elif line.startswith("-") and not line.startswith("---"):
                         deletions += 1
@@ -124,7 +126,7 @@ class DiffParser:
                 chunks=chunks,
                 raw_patch=raw_file,
                 additions_count=additions,
-                deletions_count=deletions
+                deletions_count=deletions,
             )
             files.append(file_diff)
 
@@ -135,5 +137,5 @@ class DiffParser:
             files=files,
             total_files=len(files),
             total_additions=total_additions,
-            total_deletions=total_deletions
+            total_deletions=total_deletions,
         )

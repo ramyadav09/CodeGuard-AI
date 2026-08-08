@@ -6,6 +6,7 @@ import { PRReviewPage } from './pages/PRReviewPage';
 import type { PRReviewRequest, PRReviewResponse } from './types/review';
 import { apiService } from './services/api';
 import { ShieldCheck, AlertCircle } from 'lucide-react';
+import { ThemeProvider } from './context/ThemeContext';
 
 export function App() {
   const [isHealthy, setIsHealthy] = useState(false);
@@ -58,40 +59,42 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#090d16] text-gray-100 flex flex-col font-sans">
-      <Navbar isHealthy={isHealthy} activeProvider={activeProvider} />
+    <ThemeProvider>
+      <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] flex flex-col font-sans">
+        <Navbar isHealthy={isHealthy} activeProvider={activeProvider} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        <PRInputForm onAnalyze={handleAnalyze} isLoading={isLoading} />
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+          <PRInputForm onAnalyze={handleAnalyze} isLoading={isLoading} />
 
-        {error && (
-          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-center space-x-3 text-sm">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-400" />
-            <div className="flex-1">{error}</div>
+          {error && (
+            <div className="p-4 rounded-xl bg-[var(--accent-danger)]/10 border border-[var(--accent-danger)]/30 text-[var(--accent-danger-light)] flex items-center space-x-3 text-sm">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 text-[var(--accent-danger)]" />
+              <div className="flex-1">{error}</div>
+            </div>
+          )}
+
+          {activeReview ? (
+            <PRReviewPage review={activeReview} onBack={() => setActiveReview(null)} />
+          ) : (
+            <DashboardPage
+              recentReviews={recentReviews}
+              onSelectReview={(rev) => setActiveReview(rev)}
+            />
+          )}
+        </main>
+
+        <footer className="border-t border-[var(--border-subtle)] bg-[var(--footer-bg)] py-6 text-center text-xs text-[var(--text-muted)]">
+          <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div className="flex items-center space-x-2">
+              <ShieldCheck className="w-4 h-4 text-[var(--accent-primary)]" />
+              <span className="font-semibold text-[var(--text-secondary)]">CodeGuard AI</span>
+              <span>— Track B Developer Productivity Platform</span>
+            </div>
+            <div>HowToAlgo x GDG on Campus KIIT Hackathon</div>
           </div>
-        )}
-
-        {activeReview ? (
-          <PRReviewPage review={activeReview} onBack={() => setActiveReview(null)} />
-        ) : (
-          <DashboardPage
-            recentReviews={recentReviews}
-            onSelectReview={(rev) => setActiveReview(rev)}
-          />
-        )}
-      </main>
-
-      <footer className="border-t border-gray-900 bg-gray-950 py-6 text-center text-xs text-gray-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="flex items-center space-x-2">
-            <ShieldCheck className="w-4 h-4 text-indigo-400" />
-            <span className="font-semibold text-gray-400">CodeGuard AI</span>
-            <span>— Track B Developer Productivity Platform</span>
-          </div>
-          <div>HowToAlgo x GDG on Campus KIIT Hackathon</div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </div>
+    </ThemeProvider>
   );
 }
 

@@ -93,7 +93,7 @@ test.describe('CodeGuard AI PR Review End-to-End Workflow', () => {
 
   test('1. Open Application Dashboard and verify branding', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('text=CodeGuard AI')).toBeVisible();
+    await expect(page.locator('header').locator('text=CodeGuard AI')).toBeVisible();
     await expect(page.locator('text=Analyze Pull Request')).toBeVisible();
   });
 
@@ -138,12 +138,15 @@ test.describe('CodeGuard AI PR Review End-to-End Workflow', () => {
     await page.click('button:has-text("octocat/Hello-World #1")');
     await page.click('button:has-text("Start AI Review")');
 
-    // Inspect finding card contents
-    await expect(page.locator('text=Why It Matters')).toBeVisible();
-    await expect(page.locator('text=Suggested Fix')).toBeVisible();
+    // Scope to the specific FindingCard containing the title
+    const card = page.locator('.rounded-xl.overflow-hidden').filter({ hasText: 'Hardcoded Credentials Risk' });
 
-    // Verify copy button exists
-    const copyButton = page.locator('button:has-text("Copy Fix")').first();
+    // Inspect finding card contents inside the scoped container
+    await expect(card.locator('text=Why It Matters')).toBeVisible();
+    await expect(card.locator('text=Suggested Fix')).toBeVisible();
+
+    // Verify copy button exists inside the scoped container
+    const copyButton = card.locator('button:has-text("Copy Fix")');
     await expect(copyButton).toBeVisible();
   });
 });

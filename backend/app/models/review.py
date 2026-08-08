@@ -1,9 +1,12 @@
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Integer, Float, Text, Enum as SQLEnum, ForeignKey, DateTime
+from datetime import UTC, datetime
+
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.core.database import Base
-from app.schemas.review import FindingSeverity, FindingCategory
+from app.schemas.review import FindingCategory, FindingSeverity
 
 
 def generate_uuid() -> str:
@@ -17,9 +20,13 @@ class RepositoryModel(Base):
     owner: Mapped[str] = mapped_column(String(255), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     url: Mapped[str] = mapped_column(String(512), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
 
-    pull_requests: Mapped[list["PullRequestModel"]] = relationship("PullRequestModel", back_populates="repository", cascade="all, delete-orphan")
+    pull_requests: Mapped[list["PullRequestModel"]] = relationship(
+        "PullRequestModel", back_populates="repository", cascade="all, delete-orphan"
+    )
 
 
 class PullRequestModel(Base):
@@ -37,10 +44,16 @@ class PullRequestModel(Base):
     changed_files_count: Mapped[int] = mapped_column(Integer, default=0)
     additions: Mapped[int] = mapped_column(Integer, default=0)
     deletions: Mapped[int] = mapped_column(Integer, default=0)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
 
-    repository: Mapped["RepositoryModel"] = relationship("RepositoryModel", back_populates="pull_requests")
-    reviews: Mapped[list["ReviewReportModel"]] = relationship("ReviewReportModel", back_populates="pull_request", cascade="all, delete-orphan")
+    repository: Mapped["RepositoryModel"] = relationship(
+        "RepositoryModel", back_populates="pull_requests"
+    )
+    reviews: Mapped[list["ReviewReportModel"]] = relationship(
+        "ReviewReportModel", back_populates="pull_request", cascade="all, delete-orphan"
+    )
 
 
 class ReviewReportModel(Base):
@@ -50,10 +63,16 @@ class ReviewReportModel(Base):
     pull_request_id: Mapped[str] = mapped_column(ForeignKey("pull_requests.id"), nullable=False)
     overall_score: Mapped[int] = mapped_column(Integer, nullable=False)
     summary: Mapped[str] = mapped_column(Text, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
 
-    pull_request: Mapped["PullRequestModel"] = relationship("PullRequestModel", back_populates="reviews")
-    findings: Mapped[list["FindingModel"]] = relationship("FindingModel", back_populates="review_report", cascade="all, delete-orphan")
+    pull_request: Mapped["PullRequestModel"] = relationship(
+        "PullRequestModel", back_populates="reviews"
+    )
+    findings: Mapped[list["FindingModel"]] = relationship(
+        "FindingModel", back_populates="review_report", cascade="all, delete-orphan"
+    )
 
 
 class FindingModel(Base):
@@ -72,4 +91,6 @@ class FindingModel(Base):
     suggested_fix: Mapped[str] = mapped_column(Text, nullable=False)
     confidence: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
 
-    review_report: Mapped["ReviewReportModel"] = relationship("ReviewReportModel", back_populates="findings")
+    review_report: Mapped["ReviewReportModel"] = relationship(
+        "ReviewReportModel", back_populates="findings"
+    )

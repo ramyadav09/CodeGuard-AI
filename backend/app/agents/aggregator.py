@@ -1,10 +1,9 @@
-from typing import List, Tuple
 from app.schemas.review import FindingSchema, FindingSeverity, SeverityBreakdown
 
 
 class ReviewAggregator:
     @staticmethod
-    def deduplicate_findings(findings: List[FindingSchema]) -> List[FindingSchema]:
+    def deduplicate_findings(findings: list[FindingSchema]) -> list[FindingSchema]:
         """
         Removes duplicate findings with identical file_path, title, and line overlap.
         """
@@ -20,7 +19,7 @@ class ReviewAggregator:
         return unique_findings
 
     @staticmethod
-    def calculate_health_score(findings: List[FindingSchema]) -> int:
+    def calculate_health_score(findings: list[FindingSchema]) -> int:
         """
         Calculates an overall PR Health Score from 0 to 100 based on weighted finding severities.
         """
@@ -41,7 +40,7 @@ class ReviewAggregator:
         return score
 
     @staticmethod
-    def get_severity_breakdown(findings: List[FindingSchema]) -> SeverityBreakdown:
+    def get_severity_breakdown(findings: list[FindingSchema]) -> SeverityBreakdown:
         breakdown = SeverityBreakdown()
         for f in findings:
             if f.severity == FindingSeverity.CRITICAL:
@@ -57,7 +56,9 @@ class ReviewAggregator:
         return breakdown
 
     @classmethod
-    def aggregate(cls, raw_findings: List[FindingSchema]) -> Tuple[int, SeverityBreakdown, List[FindingSchema], str]:
+    def aggregate(
+        cls, raw_findings: list[FindingSchema]
+    ) -> tuple[int, SeverityBreakdown, list[FindingSchema], str]:
         unique_findings = cls.deduplicate_findings(raw_findings)
 
         # Sort findings by severity priority
@@ -66,9 +67,11 @@ class ReviewAggregator:
             FindingSeverity.HIGH: 1,
             FindingSeverity.MEDIUM: 2,
             FindingSeverity.LOW: 3,
-            FindingSeverity.INFO: 4
+            FindingSeverity.INFO: 4,
         }
-        sorted_findings = sorted(unique_findings, key=lambda f: (severity_order.get(f.severity, 5), -f.confidence))
+        sorted_findings = sorted(
+            unique_findings, key=lambda f: (severity_order.get(f.severity, 5), -f.confidence)
+        )
 
         score = cls.calculate_health_score(sorted_findings)
         breakdown = cls.get_severity_breakdown(sorted_findings)
@@ -78,8 +81,14 @@ class ReviewAggregator:
         elif score >= 75:
             summary = "Good code quality overall. A few medium/low priority improvements suggested."
         elif score >= 50:
-            summary = "Moderate risk pull request. Several high/medium severity findings require developer review."
+            summary = (
+                "Moderate risk pull request. Several high/medium severity findings "
+                "require developer review."
+            )
         else:
-            summary = "CRITICAL RISK: Multiple severe security or bug vulnerabilities detected. Immediate revision required."
+            summary = (
+                "CRITICAL RISK: Multiple severe security or bug vulnerabilities detected. "
+                "Immediate revision required."
+            )
 
         return score, breakdown, sorted_findings, summary
